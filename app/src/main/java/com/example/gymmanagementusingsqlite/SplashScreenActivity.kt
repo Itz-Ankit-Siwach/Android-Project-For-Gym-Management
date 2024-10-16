@@ -16,6 +16,7 @@ class SplashScreenActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
+        
         mDelayHandler=Handler()
         mDelayHandler?.postDelayed(mRunnable,splashDelay)
 
