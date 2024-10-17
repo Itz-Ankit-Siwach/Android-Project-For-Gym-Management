@@ -12,10 +12,9 @@ class DB(val context: Context):SQLiteOpenHelper(context, DB_NAME,null, DB_VERSIO
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
-        if (db != null) {
-            db.execSQL(SqlTable.admin)
-            onCreate(db)
-        }
+        db?.execSQL(SqlTable.admin)
+        db?.execSQL(SqlTable.member)
+        db?.execSQL(SqlTable.fee)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {

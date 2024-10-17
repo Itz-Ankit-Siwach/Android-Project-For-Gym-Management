@@ -1,8 +1,10 @@
 package com.example.gymmanagementusingsqlite.activity
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -12,8 +14,15 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.example.gymmanagementusingsqlite.R
 import com.example.gymmanagementusingsqlite.databinding.ActivityHomeBinding
+import com.example.gymmanagementusingsqlite.fragment.FragmentAddMember
+import com.example.gymmanagementusingsqlite.fragment.FragmentAddUpdateFee
+import com.example.gymmanagementusingsqlite.fragment.FragmentAllMembers
+import com.example.gymmanagementusingsqlite.fragment.FragmentChangePassword
+import com.example.gymmanagementusingsqlite.fragment.FragmentFeePending
 import com.example.gymmanagementusingsqlite.global.DB
 import com.example.gymmanagementusingsqlite.manager.SessionManager
 import com.google.android.material.navigation.NavigationView
@@ -50,6 +59,9 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawer.addDrawerListener(toggle)
         toggle.syncState()
 
+        val fragment=FragmentAllMembers()
+        loadFragment(fragment)
+
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
@@ -69,43 +81,58 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return true
         }
 
+        if (item.itemId==R.id.logOutMenu){
+            logout()
+            return true
+        }
+
         return super.onOptionsItemSelected(item)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.nav_home ->{
-                Toast.makeText(this,"Home",Toast.LENGTH_LONG).show()
+                val fragment=FragmentAllMembers()
+                loadFragment(fragment)
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START)
                 }
             }
             R.id.nav_add -> {
-                Toast.makeText(this,"Add",Toast.LENGTH_LONG).show()
+                val fragment=FragmentAddMember()
+                loadFragment(fragment)
+
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START)
                 }
             }
             R.id.nav_fee_panding ->{
-                Toast.makeText(this,"Pending",Toast.LENGTH_LONG).show()
+                val fragment=FragmentFeePending()
+                loadFragment(fragment)
+
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START)
                 }
             }
             R.id.nav_update_fee ->{
-                Toast.makeText(this,"Update Fee",Toast.LENGTH_LONG).show()
+                val fragment=FragmentAddUpdateFee()
+                loadFragment(fragment)
+
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START)
                 }
             }
             R.id.nav_change_password ->{
-                Toast.makeText(this,"Change Password",Toast.LENGTH_LONG).show()
+                val fragment=FragmentChangePassword()
+                loadFragment(fragment)
+
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START)
                 }
             }
             R.id.nav_log_out ->{
-//                session?.setLogin(false)
+                logout()
+
                 Toast.makeText(this,"Logout",Toast.LENGTH_LONG).show()
                 if (drawer.isDrawerOpen(GravityCompat.START)) {
                     drawer.closeDrawer(GravityCompat.START)
@@ -116,6 +143,13 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+    private fun logout(){
+        session?.setLogin(false)
+        val intent=Intent(this,LoginActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
     override fun onBackPressed() {
 
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -123,6 +157,23 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }else{
             super.onBackPressed()
         }
+    }
+
+    private fun loadFragment(fragment:Fragment){
+        var fragmentManager:FragmentManager?=null
+        fragmentManager=supportFragmentManager
+        fragmentManager.beginTransaction().replace(R.id.frame_container,fragment,"Home").commit()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        try {
+            var inflater=menuInflater
+            inflater.inflate(R.menu.menu_main,menu)
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        return super.onCreateOptionsMenu(menu)
     }
 
 
