@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -7,4 +7,83 @@
     android:layout_height="match_parent"
     tools:context=".activity.LoginActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/gym_logo"
+        android:id="@+id/imgGymLogo"
+        tools:ignore="ContentDescription"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@+id/imgGymLogo"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Log In"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:hint="Enter User Name"
+            android:id="@+id/edtUserName"
+            android:layout_marginTop="10dp"
+            tools:ignore="Autofill,HardcodedText,TextFields"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="15sp"
+            android:hint="Enter Password"
+            android:id="@+id/edtPassword"
+            android:layout_marginTop="15dp"
+            tools:ignore="Autofill,HardcodedText,TextFields"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Log In"
+            android:textAllCaps="false"
+            android:textSize="15sp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_margin="20dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:id="@+id/btnLogin"
+            android:background="@color/purple_500"
+            android:textColor="@color/white"
+            tools:ignore="HardcodedText"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forgot password?"
+            android:textSize="15sp"
+            android:layout_gravity="center"
+            android:textColor="@color/red"
+            android:id="@+id/txtForgotPassword"
+            tools:ignore="HardcodedText"/>
+
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

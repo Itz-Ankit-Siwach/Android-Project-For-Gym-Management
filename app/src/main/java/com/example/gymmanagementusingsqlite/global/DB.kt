@@ -14,6 +14,7 @@ class DB(val context: Context):SQLiteOpenHelper(context, DB_NAME,null, DB_VERSIO
     override fun onCreate(db: SQLiteDatabase?) {
         if (db != null) {
             db.execSQL(SqlTable.admin)
+            onCreate(db)
         }
     }
 
