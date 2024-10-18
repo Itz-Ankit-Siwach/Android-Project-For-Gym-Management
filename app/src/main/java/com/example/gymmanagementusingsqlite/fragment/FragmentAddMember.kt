@@ -13,8 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import android.Manifest
@@ -34,6 +32,7 @@ import java.util.Locale
 class FragmentAddMember : Fragment() {
 
     private val REQUEST_CAMERA_PERMISSION = 100
+    private val REQUEST_STORAGE_PERMISSION = 200
     private val REQUEST_CAMERA = 1234
     private val REQUEST_GALLERY = 5464
     private var actualImagePath = ""
@@ -200,8 +199,7 @@ class FragmentAddMember : Fragment() {
     }
 
     private fun hasCameraPermissions() =
-        ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
     private fun hasStoragePermission() =
         ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
@@ -209,7 +207,7 @@ class FragmentAddMember : Fragment() {
     private fun requestCameraPermissions() {
         ActivityCompat.requestPermissions(
             requireActivity(),
-            arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+            arrayOf(Manifest.permission.CAMERA),
             REQUEST_CAMERA_PERMISSION
         )
     }
@@ -218,7 +216,7 @@ class FragmentAddMember : Fragment() {
         ActivityCompat.requestPermissions(
             requireActivity(),
             arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-            REQUEST_CAMERA_PERMISSION
+            REQUEST_STORAGE_PERMISSION
         )
     }
 
@@ -256,15 +254,20 @@ class FragmentAddMember : Fragment() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                if (binding.imgTakeImage.isPressed) {
+        when (requestCode) {
+            REQUEST_CAMERA_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     takePhoto()
                 } else {
-                    pickImage()
+                    showToast("Camera permission denied")
                 }
-            } else {
-                showToast("Camera permission denied")
+            }
+            REQUEST_STORAGE_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    pickImage()
+                } else {
+                    showToast("Storage permission denied")
+                }
             }
         }
     }
