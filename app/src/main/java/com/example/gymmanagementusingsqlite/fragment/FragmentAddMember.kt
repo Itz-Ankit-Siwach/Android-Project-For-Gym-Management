@@ -16,6 +16,7 @@ import android.widget.AdapterView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.database.DatabaseUtils
 import android.graphics.Bitmap
@@ -42,6 +43,8 @@ class FragmentAddMember : Fragment() {
     private var db: DB? = null
     private var fees: MutableMap<String, String> = mutableMapOf()
     private var gender="Male"
+    private var ID=""
+
     private lateinit var binding: FragmentAddMemberBinding
 
     override fun onCreateView(
@@ -51,10 +54,13 @@ class FragmentAddMember : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("UseRequireInsteadOfGet")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         db = activity?.let { DB(it) }
         captureImage = CaptureImage(activity)
+
+        ID=arguments!!.getString("ID").toString()
 
         val cal = Calendar.getInstance()
         val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
@@ -71,6 +77,13 @@ class FragmentAddMember : Fragment() {
         setupJoiningDatePicker(dateSetListener)
         setupImagePicker()
         getFee()
+
+
+        if (ID.trim().isNotEmpty()){
+            loadData()
+        }
+
+
     }
 
     private fun setupMembershipSpinner() {
@@ -115,7 +128,7 @@ class FragmentAddMember : Fragment() {
         })
 
 
-        binding.radioGroup.setOnCheckedChangeListener { radioGroup, i ->
+        binding.radioGroup.setOnCheckedChangeListener { radioGroup, id ->
             when(id){
                 R.id.rdMale -> {
                     gender="Male"
@@ -418,6 +431,92 @@ class FragmentAddMember : Fragment() {
             true
         } catch (e: Exception) {
             false
+        }
+    }
+
+
+    private fun loadData(){
+        try {
+            val sqlQuery="SELECT * FROM MEMBER WHERE ID='$ID'"
+            db?.fireQuery(sqlQuery)?.use {
+                if (it.count>0){
+                    val firstName=MyFunction.getValue(it,"FIRST_NAME")
+                    val lastName=MyFunction.getValue(it,"LAST_NAME")
+                    val age=MyFunction.getValue(it,"AGE")
+                    val gender=MyFunction.getValue(it,"GENDER")
+                    val weight=MyFunction.getValue(it,"WEIGHT")
+                    val mobileNo=MyFunction.getValue(it,"MOBILE")
+                    val address=MyFunction.getValue(it,"ADDRESS")
+                    val dateOfJoin=MyFunction.getValue(it,"DATE_OF_JOINING")
+                    val membership=MyFunction.getValue(it,"MEMBERSHIP")
+                    val expiry=MyFunction.getValue(it,"EXPIRE_ON")
+                    val discount=MyFunction.getValue(it,"DISCOUNT")
+                    val total=MyFunction.getValue(it,"TOTAL")
+                    actualImagePath=MyFunction.getValue(it,"IMAGE_PATH")
+
+                    binding.edtFirstName.setText(firstName)
+                    binding.edtLastName.setText(lastName)
+                    binding.edtAge.setText(age)
+                    binding.edtWeight.setText(weight)
+                    binding.edtMobile.setText(mobileNo)
+                    binding.edtAddress.setText(address)
+                    binding.edtJoining.setText(MyFunction.returnUserDataFormat(dateOfJoin))
+
+
+                    if (actualImagePath.isNotEmpty()){
+                        Glide.with(this)
+                            .load(actualImagePath)
+                            .into(binding.imgPic)
+                    }else{
+                        if (gender=="Male"){
+                            Glide.with(this)
+                                .load(R.drawable.boy)
+                                .into(binding.imgPic)
+                        }else{
+                            Glide.with(this)
+                                .load(R.drawable.girl)
+                                .into(binding.imgPic)
+                        }
+                    }
+
+                    if (membership.trim().isNotEmpty()){
+                        when(membership){
+                            "1 Month" -> {
+                                binding.spMembership.setSelection(1)
+                            }
+                            "3 Month" -> {
+                                binding.spMembership.setSelection(2)
+                            }
+                            "6 Month" -> {
+                                binding.spMembership.setSelection(3)
+                            }
+                            "1 Year" -> {
+                                binding.spMembership.setSelection(4)
+                            }
+                            "3 Year" -> {
+                                binding.spMembership.setSelection(5)
+                            }
+                            else ->{
+                                binding.spMembership.setSelection(0)
+                            }
+                        }
+                    }
+
+                    if (gender=="Male"){
+                        binding.radioGroup.check(R.id.rdMale)
+                    }else{
+                        binding.radioGroup.check(R.id.rdFemale)
+                    }
+
+                    binding.edtExpire.setText(MyFunction.returnUserDataFormat(expiry))
+                    binding.edtAmount.setText(total)
+                    binding.edtDiscount.setText(discount)
+
+
+                }
+            }
+        }catch (e:Exception){
+            e.printStackTrace()
         }
     }
 }

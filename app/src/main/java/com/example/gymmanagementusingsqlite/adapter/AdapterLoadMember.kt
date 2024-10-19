@@ -10,6 +10,12 @@ import com.example.gymmanagementusingsqlite.databinding.AllMemberListResBinding
 import com.example.gymmanagementusingsqlite.model.AllMember
 
 class AdapterLoadMember(val arrayList: ArrayList<AllMember>):RecyclerView.Adapter<AdapterLoadMember.MyViewHolder>() {
+
+    private var onClick:((String)->Unit)?=null
+    fun onClick(onClick:((String)->Unit)){
+        this.onClick=onClick
+    }
+
     class MyViewHolder(val binding:AllMemberListResBinding):RecyclerView.ViewHolder(binding.root) {
 
     }
@@ -48,6 +54,10 @@ class AdapterLoadMember(val arrayList: ArrayList<AllMember>):RecyclerView.Adapte
                             .load(R.drawable.girl)
                             .into(binding.imgAdapterPic)
                     }
+                }
+
+                binding.layoutMemberList.setOnClickListener {
+                    onClick?.invoke(this.id)
                 }
             }
         }

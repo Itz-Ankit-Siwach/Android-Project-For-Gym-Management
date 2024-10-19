@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gymmanagementusingsqlite.R
@@ -107,11 +108,29 @@ class FragmentAllMembers : BaseFragment() {
 
                 adapter = AdapterLoadMember(arrayList)
                 binding.recyclerViewMember.adapter = adapter
-                adapter?.notifyDataSetChanged()
+//                adapter?.notifyDataSetChanged()
+
+
+                adapter?.onClick {
+                    loadFragment(it)
+
+                }
+
+
             } else {
                 binding.recyclerViewMember.visibility = View.GONE
                 binding.txtAllMemberNDF.visibility = View.VISIBLE
             }
         })
+        CloseDialog()
+    }
+
+    private fun loadFragment(id:String){
+        val fragment=FragmentAddMember()
+        val args=Bundle()
+        args.putString("ID",id)
+        fragment.arguments=args
+        val fragmentManager:FragmentManager?=fragmentManager
+        fragmentManager!!.beginTransaction().replace(R.id.frame_container,fragment,"FragmentAdd").commit()
     }
 }
