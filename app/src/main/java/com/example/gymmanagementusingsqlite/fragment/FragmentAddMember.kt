@@ -335,18 +335,21 @@ class FragmentAddMember : Fragment() {
         }
     }
 
-    private fun validate():Boolean{
-        if(binding.edtFirstName.text.toString().trim().isEmpty()){
+    private fun validate(): Boolean {
+        if (binding.edtFirstName.text.toString().trim().isEmpty()) {
             showToast("Enter First Name")
             return false
-        }else if (binding.edtLastName.text.toString().trim().isEmpty()){
+        } else if (binding.edtLastName.text.toString().trim().isEmpty()) {
             showToast("Enter Last Name")
             return false
-        }else if (binding.edtAge.text.toString().trim().isEmpty()){
+        } else if (binding.edtAge.text.toString().trim().isEmpty()) {
             showToast("Enter Age")
             return false
-        }else if (binding.edtMobile.text.toString().trim().isEmpty()){
+        } else if (binding.edtMobile.text.toString().trim().isEmpty()) {
             showToast("Enter Mobile Number")
+            return false
+        } else if (binding.edtJoining.text.toString().trim().isEmpty() || !isValidDate(binding.edtJoining.text.toString().trim())) {
+            showToast("Enter a valid Joining Date (dd/MM/yyyy)")
             return false
         }
         return true
@@ -407,5 +410,14 @@ class FragmentAddMember : Fragment() {
         Glide.with(this)
             .load(R.drawable.boy)
             .into(binding.imgPic)
+    }
+    private fun isValidDate(dateString: String): Boolean {
+        return try {
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
+            dateFormat.parse(dateString)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }
