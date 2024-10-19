@@ -79,11 +79,53 @@ class FragmentAddMember : Fragment() {
         getFee()
 
 
-        if (ID.trim().isNotEmpty()){
-            loadData()
+        binding.btnActiveInactive.setOnClickListener {
+            try {
+                if (getStatus()=="A"){
+                    val sqlQuery="UPDATE MEMBER SET STATUS='I' WHERE ID='$ID'"
+                    db?.executeQuery(sqlQuery)
+                    showToast("Member is Inactive now")
+                } else{
+                    val sqlQuery="UPDATE MEMBER SET STATUS='A' WHERE ID='$ID'"
+                    db?.executeQuery(sqlQuery)
+                    showToast("Member is Active now")
+                }
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
         }
 
 
+        if (ID.trim().isNotEmpty()){
+            if (getStatus()=="A"){
+                binding.btnActiveInactive.text="Inactive"
+                binding.btnActiveInactive.visibility=View.VISIBLE
+            }else{
+                binding.btnActiveInactive.text="Active"
+                binding.btnActiveInactive.visibility=View.VISIBLE
+            }
+            loadData()
+        }else{
+            binding.btnActiveInactive.visibility=View.GONE
+        }
+
+
+    }
+
+    private fun getStatus():String{
+        var status=""
+        try {
+            val sqlQuery="SELECT STATUS FROM MEMBER WHERE ID='$ID'"
+            db?.fireQuery(sqlQuery)?.use {
+                if (it.count>0){
+                    status=MyFunction.getValue(it,"STATUS")
+                }
+            }
+        }
+        catch (e:Exception){
+            e.printStackTrace()
+        }
+        return status
     }
 
     private fun setupMembershipSpinner() {
@@ -370,9 +412,16 @@ class FragmentAddMember : Fragment() {
 
     private fun saveData(){
         try {
+            var myIncrementId=""
+            if (ID.trim().isEmpty()){
+                myIncrementId=getIncrementId()
+            }else{
+                myIncrementId=ID
+            }
+
             val sqlQuery = "INSERT OR REPLACE INTO MEMBER(ID, FIRST_NAME, LAST_NAME, GENDER, AGE, WEIGHT, MOBILE, ADDRESS, " +
                     "DATE_OF_JOINING, MEMBERSHIP, EXPIRE_ON, DISCOUNT, TOTAL, IMAGE_PATH, STATUS) VALUES (" +
-                    "'${getIncrementId()}', " +
+                    "'${myIncrementId}', " +
                     "${DatabaseUtils.sqlEscapeString(binding.edtFirstName.text.toString().trim())}, " +
                     "${DatabaseUtils.sqlEscapeString(binding.edtLastName.text.toString().trim())}, " +
                     "'$gender', " +
@@ -389,6 +438,11 @@ class FragmentAddMember : Fragment() {
                     "'A')"
             db?.executeQuery(sqlQuery)
             showToast("Member data saved successfully!")
+
+            if (ID.trim().isEmpty()){
+                clearData()
+            }
+
             clearData()
         }catch (e:Exception){
             e.printStackTrace()

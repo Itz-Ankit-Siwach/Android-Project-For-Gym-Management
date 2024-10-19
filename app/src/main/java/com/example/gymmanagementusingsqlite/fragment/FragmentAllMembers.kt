@@ -48,6 +48,9 @@ class FragmentAllMembers : BaseFragment() {
                 }
             }
         }
+        binding.imgAddMember.setOnClickListener {
+            loadFragment("")
+        }
 
         // Initialize RecyclerView
         binding.recyclerViewMember.layoutManager = LinearLayoutManager(activity)
@@ -77,6 +80,7 @@ class FragmentAllMembers : BaseFragment() {
         lifecycleScope.executeAsyncTask(onPreExecute = {
             showDialog("Loading...")
         }, doInBackground = {
+            arrayList.clear()
             val sqlQuery = "SELECT * FROM MEMBER WHERE STATUS='$memberStatus'"
             db?.fireQuery(sqlQuery)?.use {
                 if (it.count > 0) {
