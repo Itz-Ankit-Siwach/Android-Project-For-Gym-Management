@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.app.Activity
+import android.database.DatabaseUtils
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
@@ -40,7 +41,7 @@ class FragmentAddMember : Fragment() {
     private var captureImage: CaptureImage? = null
     private var db: DB? = null
     private var fees: MutableMap<String, String> = mutableMapOf()
-
+    private var gender="Male"
     private lateinit var binding: FragmentAddMemberBinding
 
     override fun onCreateView(
@@ -112,6 +113,24 @@ class FragmentAddMember : Fragment() {
                 calculateTotal()
             }
         })
+
+
+        binding.radioGroup.setOnCheckedChangeListener { radioGroup, i ->
+            when(id){
+                R.id.rdMale -> {
+                    gender="Male"
+                }
+                R.id.rdFemale -> {
+                    gender="Female"
+                }
+            }
+        }
+        binding.btnAddMemberSave.setOnClickListener {
+            if (validate()){
+                saveData()
+            }
+        }
+
     }
 
     private fun setupJoiningDatePicker(dateSetListener: DatePickerDialog.OnDateSetListener) {
@@ -131,11 +150,14 @@ class FragmentAddMember : Fragment() {
         try {
             val sqlQuery = "SELECT * FROM FEE WHERE ID = '1'"
             db?.fireQuery(sqlQuery)?.use {
-                fees["1 Month"] = MyFunction.getValue(it, "ONE_MONTH") ?: "0"
-                fees["3 Month"] = MyFunction.getValue(it, "THREE_MONTH") ?: "0"
-                fees["6 Month"] = MyFunction.getValue(it, "SIX_MONTH") ?: "0"
-                fees["1 Year"] = MyFunction.getValue(it, "ONE_YEAR") ?: "0"
-                fees["3 Year"] = MyFunction.getValue(it, "THREE_YEAR") ?: "0"
+
+                if (it.count > 0) {
+                    fees["1 Month"] = MyFunction.getValue(it, "ONE_MONTH") ?: "0"
+                    fees["3 Month"] = MyFunction.getValue(it, "THREE_MONTH") ?: "0"
+                    fees["6 Month"] = MyFunction.getValue(it, "SIX_MONTH") ?: "0"
+                    fees["1 Year"] = MyFunction.getValue(it, "ONE_YEAR") ?: "0"
+                    fees["3 Year"] = MyFunction.getValue(it, "THREE_YEAR") ?: "0"
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -311,5 +333,79 @@ class FragmentAddMember : Fragment() {
                 .load(tempUri)
                 .into(binding.imgPic)
         }
+    }
+
+    private fun validate():Boolean{
+        if(binding.edtFirstName.text.toString().trim().isEmpty()){
+            showToast("Enter First Name")
+            return false
+        }else if (binding.edtLastName.text.toString().trim().isEmpty()){
+            showToast("Enter Last Name")
+            return false
+        }else if (binding.edtAge.text.toString().trim().isEmpty()){
+            showToast("Enter Age")
+            return false
+        }else if (binding.edtMobile.text.toString().trim().isEmpty()){
+            showToast("Enter Mobile Number")
+            return false
+        }
+        return true
+    }
+
+    private fun saveData(){
+        try {
+            val sqlQuery = "INSERT OR REPLACE INTO MEMBER(ID, FIRST_NAME, LAST_NAME, GENDER, AGE, WEIGHT, MOBILE, ADDRESS, " +
+                    "DATE_OF_JOINING, MEMBERSHIP, EXPIRE_ON, DISCOUNT, TOTAL, IMAGE_PATH, STATUS) VALUES (" +
+                    "'${getIncrementId()}', " +
+                    "${DatabaseUtils.sqlEscapeString(binding.edtFirstName.text.toString().trim())}, " +
+                    "${DatabaseUtils.sqlEscapeString(binding.edtLastName.text.toString().trim())}, " +
+                    "'$gender', " +
+                    "'${binding.edtAge.text.toString().trim()}', " +
+                    "'${binding.edtWeight.text.toString().trim()}', " +
+                    "'${binding.edtMobile.text.toString().trim()}', " +
+                    "'${binding.edtAddress.text.toString().trim()}', " +
+                    "'${MyFunction.returnSQLDataFormat(binding.edtJoining.text.toString().trim())}', " +
+                    "'${binding.spMembership.selectedItem.toString().trim()}', " +
+                    "'${MyFunction.returnSQLDataFormat(binding.edtExpire.text.toString().trim())}', " +
+                    "'${binding.edtDiscount.text.toString().trim()}', " +
+                    "'${binding.edtAmount.text.toString().trim()}', " +
+                    "'$actualImagePath', " +
+                    "'A')"
+            db?.executeQuery(sqlQuery)
+            showToast("Member data saved successfully!")
+            clearData()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+    }
+
+    private fun getIncrementId():String{
+        var incrementId=""
+        try {
+            val sqlQuery="SELECT IFNULL(MAX(ID)+1,'1') AS ID FROM MEMBER"
+            db?.fireQuery(sqlQuery)?.use {
+                if (it.count > 0) {
+                    incrementId = MyFunction.getValue(it, "ID")
+                }
+            }
+
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
+        return incrementId
+    }
+
+    private fun clearData(){
+        binding.edtFirstName.setText("")
+        binding.edtLastName.setText("")
+        binding.edtAge.setText("")
+        binding.edtWeight.setText("")
+        binding.edtMobile.setText("")
+        binding.edtJoining.setText("")
+
+        Glide.with(this)
+            .load(R.drawable.boy)
+            .into(binding.imgPic)
     }
 }
