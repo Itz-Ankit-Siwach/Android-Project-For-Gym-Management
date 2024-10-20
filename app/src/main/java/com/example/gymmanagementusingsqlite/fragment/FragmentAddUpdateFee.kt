@@ -25,6 +25,8 @@ class FragmentAddUpdateFee : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        activity?.title="Fee"
         db=activity?.let { DB(it) }
         binding.btnAddMemberShip.setOnClickListener {
             if (validate()){

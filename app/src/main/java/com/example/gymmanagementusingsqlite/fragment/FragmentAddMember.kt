@@ -18,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.database.DatabaseUtils
 import android.graphics.Bitmap
 import android.net.Uri
@@ -25,10 +26,12 @@ import android.util.Log
 import com.bumptech.glide.Glide
 import com.example.gymmanagementusingsqlite.R
 import com.example.gymmanagementusingsqlite.databinding.FragmentAddMemberBinding
+import com.example.gymmanagementusingsqlite.databinding.RenewDialogueBinding
 import com.example.gymmanagementusingsqlite.global.CaptureImage
 import com.example.gymmanagementusingsqlite.global.DB
 import com.example.gymmanagementusingsqlite.global.MyFunction
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class FragmentAddMember : Fragment() {
@@ -46,6 +49,7 @@ class FragmentAddMember : Fragment() {
     private var ID=""
 
     private lateinit var binding: FragmentAddMemberBinding
+    private lateinit var bindingDialog:RenewDialogueBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -57,6 +61,9 @@ class FragmentAddMember : Fragment() {
     @SuppressLint("UseRequireInsteadOfGet")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        activity?.title="Add New Member"
+
         db = activity?.let { DB(it) }
         captureImage = CaptureImage(activity)
 
@@ -107,6 +114,15 @@ class FragmentAddMember : Fragment() {
             loadData()
         }else{
             binding.btnActiveInactive.visibility=View.GONE
+        }
+
+
+        binding.btnRenewalSave.setOnClickListener {
+
+            if (ID.trim().isNotEmpty()){
+                openRenewalDialog()
+            }
+
         }
 
 
@@ -566,6 +582,18 @@ class FragmentAddMember : Fragment() {
                     binding.edtAmount.setText(total)
                     binding.edtDiscount.setText(discount)
 
+                    val sdf=SimpleDateFormat("yyyy-MM-dd",Locale.US)
+                    val eDate=sdf.parse(expiry)
+                    if (eDate!!.after(Date())){
+                        //if expiry>current date
+                        binding.btnRenewalSave.visibility=View.GONE
+                    }else{
+                        if (getStatus()=="A"){
+                            binding.btnRenewalSave.visibility=View.VISIBLE
+                        }else{
+                            binding.btnRenewalSave.visibility=View.GONE
+                        }
+                    }
 
                 }
             }
@@ -573,4 +601,155 @@ class FragmentAddMember : Fragment() {
             e.printStackTrace()
         }
     }
+
+    @SuppressLint("UseRequireInsteadOfGet")
+    private fun openRenewalDialog() {
+        // Inflate the dialog layout
+        bindingDialog = RenewDialogueBinding.inflate(LayoutInflater.from(activity))
+        val dialog = Dialog(requireActivity(), R.style.AlterDialogCustom)
+        dialog.setContentView(bindingDialog.root)
+        dialog.setCancelable(false)
+        dialog.show()
+
+        // Set the initial joining date from expire text
+        bindingDialog.edtDialogJoining.setText(binding.edtExpire.text.toString().trim())
+
+        // Dismiss the dialog when the back button is clicked
+        bindingDialog.imgDialogRenewBack.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // Initialize calendar and date set listener
+        val cal = Calendar.getInstance()
+        val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
+            cal.set(Calendar.YEAR, year)
+            cal.set(Calendar.MONTH, month)
+            cal.set(Calendar.DAY_OF_MONTH, day)
+            val myFormat = "dd/MM/yyyy"
+            val sdf = SimpleDateFormat(myFormat, Locale.US)
+            bindingDialog.edtDialogJoining.setText(sdf.format(cal.time))
+        }
+
+        // Show date picker when date image is clicked
+        bindingDialog.imgDialogPicDate.setOnClickListener {
+            activity?.let {
+                DatePickerDialog(
+                    it,
+                    dateSetListener,
+                    cal.get(Calendar.YEAR),
+                    cal.get(Calendar.MONTH),
+                    cal.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            }
+        }
+
+        // Set item selection listener for the membership spinner
+        bindingDialog.spDialogMembership.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val value = parent.getItemAtPosition(position).toString().trim()
+                if (value == "Select") {
+                    bindingDialog.edtDialogExpire.setText("") // Clear expiration date if "Select" is chosen
+                    bindingDialog.edtDialogAmount.setText("0.00") // Clear amount when "Select" is chosen
+                } else {
+                    if (bindingDialog.edtDialogJoining.text.toString().trim().isNotEmpty()) { // Check if joining date is set
+                        val months = when (value) {
+                            "1 Month" -> 1
+                            "3 Month" -> 3
+                            "6 Month" -> 6
+                            "1 Year" -> 12
+                            "3 Year" -> 36
+                            else -> 0
+                        }
+
+                        if (months > 0) {
+                            val dtStart = bindingDialog.edtDialogJoining.text.toString().trim()
+                            val format = SimpleDateFormat("dd/MM/yyyy", Locale.US)
+
+                            // Parse the joining date
+                            val date1 = format.parse(dtStart)
+                            if (date1 != null) {
+                                val calExpire = Calendar.getInstance().apply { time = date1 }
+                                calExpire.add(Calendar.MONTH, months) // Use the months calculated from spinner
+
+                                val myFormat = "dd/MM/yyyy"
+                                val sdf = SimpleDateFormat(myFormat, Locale.US)
+                                bindingDialog.edtDialogExpire.setText(sdf.format(calExpire.time))
+                            } else {
+                                showToast("Please select a valid joining date")
+                            }
+
+                            // Calculate the total amount
+                            val discount = bindingDialog.edtDialogDiscount.text.toString().toDoubleOrNull() ?: 0.0
+                            val fee = fees[value]?.toDoubleOrNull() ?: 0.0
+
+                            val total = fee - (fee * discount / 100)
+                            bindingDialog.edtDialogAmount.setText(total.toString()) // Set total amount in the dialog
+                        }
+                    } else {
+                        showToast("Select Joining Date First") // Ensure the user selects a date first
+                        bindingDialog.spDialogMembership.setSelection(0) // Reset the spinner selection
+                    }
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+                // No action needed
+            }
+        }
+
+        // Add listener for discount input to recalculate total when discount changes
+        bindingDialog.edtDialogDiscount.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Recalculate total whenever the discount changes
+                val discount = s.toString().toDoubleOrNull() ?: 0.0
+                val membershipType = bindingDialog.spDialogMembership.selectedItem?.toString()?.trim()
+                if (membershipType != null) {
+                    val fee = fees[membershipType]?.toDoubleOrNull() ?: 0.0
+                    val total = fee - (fee * discount / 100)
+                    bindingDialog.edtDialogAmount.setText(total.toString())
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+
+        bindingDialog.btnDialogRenewalSave.setOnClickListener {
+            if (bindingDialog.spDialogMembership.selectedItem.toString().trim() != "Select") {
+                try {
+                    val joiningDate = MyFunction.returnSQLDataFormat(bindingDialog.edtDialogJoining.text.toString().trim())
+                    val membership = bindingDialog.spDialogMembership.selectedItem.toString().trim()
+                    val expireDate = MyFunction.returnSQLDataFormat(bindingDialog.edtDialogExpire.text.toString().trim())
+                    val discount = bindingDialog.edtDialogDiscount.text.toString().toDoubleOrNull() ?: 0.0
+                    val total = bindingDialog.edtDialogAmount.text.toString().toDoubleOrNull() ?: 0.0
+
+                    // Construct the SQL query
+                    val sqlQuery = "UPDATE MEMBER SET " +
+                            "DATE_OF_JOINING='$joiningDate', " +
+                            "MEMBERSHIP='$membership', " +
+                            "EXPIRE_ON='$expireDate', " +
+                            "DISCOUNT=$discount, " +
+                            "TOTAL=$total " +
+                            "WHERE ID='$ID'" // Ensure ID is defined appropriately
+
+                    db?.executeQuery(sqlQuery)
+                    showToast("Membership information updated successfully.")
+                    dialog.dismiss()
+                    loadData()
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    showToast("Failed to update membership information.")
+                }
+            } else {
+                showToast("Please select a valid membership type.")
+            }
+        }
+
+    }
+
+
+
 }

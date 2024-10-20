@@ -1,6 +1,8 @@
 package com.example.gymmanagementusingsqlite.fragment
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class FragmentAllMembers : BaseFragment() {
     private val TAG = "FragmentAllMembers"
@@ -36,6 +39,8 @@ class FragmentAllMembers : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        activity?.title="Dashboard"
         db = activity?.let { DB(it) }
 
         binding.radioGroupMember.setOnCheckedChangeListener { radioGroup, i ->
@@ -51,6 +56,21 @@ class FragmentAllMembers : BaseFragment() {
         binding.imgAddMember.setOnClickListener {
             loadFragment("")
         }
+
+        binding.edtAllMemberSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+                myFilter(p0.toString())
+            }
+
+        })
 
         // Initialize RecyclerView
         binding.recyclerViewMember.layoutManager = LinearLayoutManager(activity)
@@ -136,5 +156,20 @@ class FragmentAllMembers : BaseFragment() {
         fragment.arguments=args
         val fragmentManager:FragmentManager?=fragmentManager
         fragmentManager!!.beginTransaction().replace(R.id.frame_container,fragment,"FragmentAdd").commit()
+    }
+
+
+    private fun myFilter(search:String){
+        val temp:ArrayList<AllMember> = ArrayList()
+
+        if (arrayList.size>0){
+            for (list in arrayList){
+                if(list.firstName.toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT))||
+                    list.lastName.toLowerCase(Locale.ROOT).contains(search.toLowerCase(Locale.ROOT)) ){
+                    temp.add(list)
+                }
+            }
+        }
+        adapter?.updateList(temp)
     }
 }

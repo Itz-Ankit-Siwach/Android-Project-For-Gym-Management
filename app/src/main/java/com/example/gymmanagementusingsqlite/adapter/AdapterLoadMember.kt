@@ -9,7 +9,7 @@ import com.example.gymmanagementusingsqlite.R
 import com.example.gymmanagementusingsqlite.databinding.AllMemberListResBinding
 import com.example.gymmanagementusingsqlite.model.AllMember
 
-class AdapterLoadMember(val arrayList: ArrayList<AllMember>):RecyclerView.Adapter<AdapterLoadMember.MyViewHolder>() {
+class AdapterLoadMember(var arrayList: ArrayList<AllMember>):RecyclerView.Adapter<AdapterLoadMember.MyViewHolder>() {
 
     private var onClick:((String)->Unit)?=null
     fun onClick(onClick:((String)->Unit)){
@@ -28,6 +28,11 @@ class AdapterLoadMember(val arrayList: ArrayList<AllMember>):RecyclerView.Adapte
     }
     override fun getItemCount(): Int {
         return arrayList.count()
+    }
+
+    fun  updateList(list:ArrayList<AllMember>){
+        arrayList=list
+        notifyDataSetChanged()
     }
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {

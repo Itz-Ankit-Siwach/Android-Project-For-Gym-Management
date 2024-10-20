@@ -325,6 +325,19 @@
                     <Button
                         android:layout_width="wrap_content"
                         android:layout_height="40dp"
+                        android:text="Renewal"
+                        android:textStyle="bold"
+                        android:id="@+id/btnRenewalSave"
+                        android:background="@color/purple_500"
+                        android:textColor="@color/white"
+                        android:textAllCaps="false"
+                        android:layout_marginEnd="5dp"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"/>
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
                         android:text="Active"
                         android:textStyle="bold"
                         android:id="@+id/btnActiveInactive"
